@@ -225,14 +225,6 @@ go test -bench SignXML -run=^$ -benchmem
 				<sub><b>Kilibayev Azat</b></sub>
 			</a>
 		</td>
-		<td align="center">
-			<a href="https://github.com/lEx0">
-				<img src="https://avatars.githubusercontent.com/u/329890?v=4&s=100" width="100px;" alt=""/>
-			</a><br />
-			<a href="https://github.com/gokalkan/gokalkan/commits?author=lEx0" title="Code">
-				<sub><b>Amangeldy Kadyl</b></sub>
-			</a>
-		</td>
 	</tr>
 </table>
 
