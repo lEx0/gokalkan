@@ -61,16 +61,16 @@ func (cli *Client) VerifyData(inSign, inData, alias string, flag Flag) (
 	defer C.free(kcInSign)
 	inputSignLength := len(inSign)
 
-	dynamicOutDataLength := max(outDataLength, inputSignLength*2)
+	dynamicOutDataLength := max(outDataLength, inputSignLength*3)
 
 	kcOutData := make([]byte, dynamicOutDataLength)
 	kcOutDataLen := dynamicOutDataLength
 
-	dynamicOutVerifyInfoLength := outVerifyInfoLength * 2
+	dynamicOutVerifyInfoLength := outVerifyInfoLength * 3
 	kcOutVerifyInfo := make([]byte, dynamicOutVerifyInfoLength)
 	kcOutVerifyInfoLen := dynamicOutVerifyInfoLength
 
-	dynamicOutCertLength := outCertLength * 2
+	dynamicOutCertLength := outCertLength * 3
 	kcOutCert := make([]byte, dynamicOutCertLength)
 	kcOutCertLen := dynamicOutCertLength
 
