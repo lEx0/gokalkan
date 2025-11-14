@@ -44,13 +44,10 @@ func (cli *Client) X509CertificateGetSummary(cert string) (*Summary, error) {
 
 	if summary.Subject.LastName, err = cli.kc.X509CertificateGetInfo(
 		cert, ckalkan.CertPropSubjectGivenName,
-	); err != nil {
-		return nil, errors.Join(
-			errors.New("unable to get subject last name"), err,
-		)
+	); err == nil {
+		// иногда приходят люди без фамилии в сертификате
+		summary.Subject.LastName = cleanupValue(summary.Subject.LastName, "=")
 	}
-
-	summary.Subject.LastName = cleanupValue(summary.Subject.LastName, "=")
 
 	if summary.Subject.Country, err = cli.kc.X509CertificateGetInfo(
 		cert, ckalkan.CertPropSubjectCountryName,
