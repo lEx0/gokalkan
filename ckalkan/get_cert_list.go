@@ -38,7 +38,16 @@ func (cli *Client) GetCertificatesList() (certs string, err error) {
 		(*C.ulong)(unsafe.Pointer(&count)),
 	))
 
-	certs = C.GoString((*C.char)(cCerts))
+	// Всегда копируем список сертификатов ДО проверки ошибки
+	if cCerts != nil {
+		certs = C.GoString((*C.char)(cCerts))
+	}
 
-	return certs, cli.wrapError(rc)
+	err = cli.wrapError(rc)
+	if err != nil {
+		// Возвращаем пустую строку при ошибке
+		return "", err
+	}
+
+	return certs, nil
 }

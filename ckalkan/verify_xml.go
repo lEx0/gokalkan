@@ -49,12 +49,16 @@ func (cli *Client) VerifyXML(xml, alias string, flags Flag) (result string, err 
 		(*C.int)(unsafe.Pointer(&outVerifyInfoLen)),
 	))
 
-	err = cli.wrapError(rc)
-	if err != nil {
-		return result, err
+	// Всегда копируем результат верификации ДО проверки ошибки
+	if outVerifyInfo != nil {
+		result = C.GoString((*C.char)(outVerifyInfo))
 	}
 
-	result = C.GoString((*C.char)(outVerifyInfo))
+	err = cli.wrapError(rc)
+	if err != nil {
+		// Возвращаем пустую строку при ошибке
+		return "", err
+	}
 
 	return result, nil
 }

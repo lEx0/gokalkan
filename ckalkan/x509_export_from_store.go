@@ -45,12 +45,16 @@ func (cli *Client) X509ExportCertificateFromStore(alias string) (result string, 
 		(*C.int)(unsafe.Pointer(&outCertLen)),
 	))
 
-	err = cli.wrapError(rc)
-	if err != nil {
-		return result, err
+	// Всегда копируем сертификат ДО проверки ошибки
+	if cert != nil {
+		result = C.GoString((*C.char)(cert))
 	}
 
-	result = C.GoString((*C.char)(cert))
+	err = cli.wrapError(rc)
+	if err != nil {
+		// Возвращаем пустую строку при ошибке
+		return "", err
+	}
 
 	return result, nil
 }

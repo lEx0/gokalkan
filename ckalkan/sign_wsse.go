@@ -64,12 +64,16 @@ func (cli *Client) SignWSSE(xml, alias string, flags Flag, signNodeID string) (s
 		cSignNodeID,
 	))
 
-	err = cli.wrapError(rc)
-	if err != nil {
-		return signedXML, err
+	// Всегда копируем подписанный WSSE XML ДО проверки ошибки
+	if outSign != nil {
+		signedXML = C.GoString((*C.char)(outSign))
 	}
 
-	signedXML = C.GoString((*C.char)(outSign))
+	err = cli.wrapError(rc)
+	if err != nil {
+		// Возвращаем пустую строку при ошибке
+		return "", err
+	}
 
 	return signedXML, nil
 }
