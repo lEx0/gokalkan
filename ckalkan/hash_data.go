@@ -37,6 +37,7 @@ func (cli *Client) HashData(algo HashAlgo, dataB64 string, flag Flag) (result st
 
 	cli.mu.Lock()
 	defer cli.mu.Unlock()
+	defer cli.forceDefragmentation() // Принудительная дефрагментация после операции
 
 	kcAlgo := C.CString(string(algo))
 	defer C.free(unsafe.Pointer(kcAlgo))

@@ -28,6 +28,7 @@ func (cli *Client) GetCertFromCMS(cms string, signID int, flag Flag) (cert strin
 
 	cli.mu.Lock()
 	defer cli.mu.Unlock()
+	defer cli.forceDefragmentation() // Принудительная дефрагментация после операции
 
 	cCMS := C.CString(cms)
 	defer C.free(unsafe.Pointer(cCMS))

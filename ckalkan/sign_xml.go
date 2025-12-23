@@ -44,6 +44,7 @@ func (cli *Client) SignXML(xml, alias string, flags Flag, signNodeID, parentSign
 
 	cli.mu.Lock()
 	defer cli.mu.Unlock()
+	defer cli.forceDefragmentation() // Принудительная дефрагментация после операции
 
 	cAlias := C.CString(alias)
 	defer C.free(unsafe.Pointer(cAlias))

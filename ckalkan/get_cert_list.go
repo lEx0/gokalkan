@@ -27,6 +27,7 @@ func (cli *Client) GetCertificatesList() (certs string, err error) {
 
 	cli.mu.Lock()
 	defer cli.mu.Unlock()
+	defer cli.forceDefragmentation() // Принудительная дефрагментация после операции
 
 	count := 40
 	certsLen := 4096

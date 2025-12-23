@@ -30,6 +30,7 @@ func (cli *Client) SignData(inSign, inData, alias string, flag Flag) (result str
 
 	cli.mu.Lock()
 	defer cli.mu.Unlock()
+	defer cli.forceDefragmentation() // Принудительная дефрагментация после операции
 
 	kcAlias := C.CString(alias)
 	defer C.free(unsafe.Pointer(kcAlias))

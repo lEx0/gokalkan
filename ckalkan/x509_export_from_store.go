@@ -28,6 +28,7 @@ func (cli *Client) X509ExportCertificateFromStore(alias string) (result string, 
 
 	cli.mu.Lock()
 	defer cli.mu.Unlock()
+	defer cli.forceDefragmentation() // Принудительная дефрагментация после операции
 
 	flag := 0
 	outCertLen := 32768

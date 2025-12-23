@@ -28,6 +28,7 @@ func (cli *Client) VerifyXML(xml, alias string, flags Flag) (result string, err 
 
 	cli.mu.Lock()
 	defer cli.mu.Unlock()
+	defer cli.forceDefragmentation() // Принудительная дефрагментация после операции
 
 	cAlias := C.CString(alias)
 	defer C.free(unsafe.Pointer(cAlias))

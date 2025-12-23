@@ -53,6 +53,7 @@ func (cli *Client) SignWSSE(xml, alias string, flags Flag, signNodeID string) (s
 
 	cli.mu.Lock()
 	defer cli.mu.Unlock()
+	defer cli.forceDefragmentation() // Принудительная дефрагментация после операции
 
 	rc := int(C.signWSSE(
 		cAlias,

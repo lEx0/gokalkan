@@ -49,6 +49,7 @@ func (cli *Client) VerifyData(inSign, inData, alias string, flag Flag) (
 
 	cli.mu.Lock()
 	defer cli.mu.Unlock()
+	defer cli.forceDefragmentation() // Принудительная дефрагментация после операции
 
 	kcAlias := C.CString(alias)
 	defer C.free(unsafe.Pointer(kcAlias))

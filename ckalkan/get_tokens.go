@@ -28,6 +28,7 @@ func (cli *Client) GetTokens(store StoreType) (tokens string, err error) {
 
 	cli.mu.Lock()
 	defer cli.mu.Unlock()
+	defer cli.forceDefragmentation() // Принудительная дефрагментация после операции
 
 	tokenLen := 8192
 	cTokens := C.malloc(C.ulong(C.sizeof_char * tokenLen))
