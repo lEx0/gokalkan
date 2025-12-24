@@ -30,11 +30,7 @@ import (
 //
 // - parentNameSpace - пространство имен тэга, в который необходимо поместить значение подписи.
 // Если пространство имен есть, но не будет указано - то тег не найдется.
-func (cli *Client) SignXML(
-	xml, alias string,
-	flags Flag,
-	signNodeID, parentSignNode, parentNameSpace string,
-) (signedXML string, err error) {
+func (cli *Client) SignXML(xml, alias string, flags Flag, signNodeID, parentSignNode, parentNameSpace string) (signedXML string, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			if err != nil {
@@ -48,6 +44,7 @@ func (cli *Client) SignXML(
 
 	cli.mu.Lock()
 	defer cli.mu.Unlock()
+	defer cli.XMLFinalize()
 	defer cli.forceDefragmentation() // Принудительная дефрагментация после операции
 
 	cAlias := C.CString(alias)
@@ -70,19 +67,17 @@ func (cli *Client) SignXML(
 	cParentNameSpace := C.CString(parentNameSpace)
 	defer C.free(unsafe.Pointer(cParentNameSpace))
 
-	rc := int(
-		C.signXML(
-			cAlias,
-			C.int(flags),
-			cInData,
-			C.int(inDataLength),
-			(*C.uchar)(outSign),
-			(*C.int)(unsafe.Pointer(&outSignLength)),
-			cSignNodeID,
-			cParentSignNode,
-			cParentNameSpace,
-		),
-	)
+	rc := int(C.signXML(
+		cAlias,
+		C.int(flags),
+		cInData,
+		C.int(inDataLength),
+		(*C.uchar)(outSign),
+		(*C.int)(unsafe.Pointer(&outSignLength)),
+		cSignNodeID,
+		cParentSignNode,
+		cParentNameSpace,
+	))
 
 	// Всегда копируем подписанный XML ДО проверки ошибки
 	if outSign != nil {
