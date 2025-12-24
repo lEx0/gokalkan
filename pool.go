@@ -1,6 +1,7 @@
 package gokalkan
 
 import (
+	"log/slog"
 	"sync"
 )
 
@@ -9,9 +10,11 @@ import (
 // ClientPool переиспользует существующие клиенты, что минимизирует
 // количество Init/Finalize циклов и снижает утечки памяти в C коде.
 type ClientPool struct {
-	pool sync.Pool
-	opts []Option
-	mu   sync.Mutex
+	pool    sync.Pool
+	opts    []Option
+	mu      sync.Mutex
+	created int
+	stored  int
 }
 
 // NewClientPool создает новый пул клиентов с заданными опциями.
@@ -30,6 +33,11 @@ type ClientPool struct {
 func NewClientPool(opts ...Option) *ClientPool {
 	cp := &ClientPool{opts: opts}
 	cp.pool.New = func() interface{} {
+
+		cp.mu.Lock()
+		defer cp.mu.Unlock()
+		cp.created += 1
+
 		cli, err := NewClient(opts...)
 		if err != nil {
 			// Возвращаем nil при ошибке, Get() обработает это
@@ -45,15 +53,35 @@ func NewClientPool(opts ...Option) *ClientPool {
 func (p *ClientPool) Get() (*Client, error) {
 	obj := p.pool.Get()
 	if obj == nil {
+		slog.Info(
+			"pool: не смогли получить, создаем экземпляр в пул",
+			slog.Int("stored", p.stored),
+			slog.Int("created", p.created),
+		)
 		// pool.New вернула nil из-за ошибки, создаем напрямую
 		return NewClient(p.opts...)
 	}
 
 	cli, ok := obj.(*Client)
 	if !ok || cli == nil {
+		slog.Info(
+			"pool: некорректный объект, создаем",
+			slog.Int("stored", p.stored),
+			slog.Int("created", p.created),
+		)
 		// Некорректный объект в пуле, создаем новый
 		return NewClient(p.opts...)
 	}
+
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	p.stored -= 1
+
+	slog.Info(
+		"pool: получили объект из пула",
+		slog.Int("stored", p.stored),
+		slog.Int("created", p.created),
+	)
 
 	return cli, nil
 }
@@ -65,6 +93,19 @@ func (p *ClientPool) Put(cli *Client) {
 	if cli == nil {
 		return
 	}
+
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
+	p.stored += 1
+	p.created -= 1
+
+	slog.Info(
+		"pool: получили пустой экземпляр",
+		slog.Int("stored", p.stored),
+		slog.Int("created", p.created),
+	)
+
 	// Возвращаем клиент в пул БЕЗ вызова Close()
 	p.pool.Put(cli)
 }
@@ -78,6 +119,12 @@ func (p *ClientPool) Put(cli *Client) {
 func (p *ClientPool) Close() error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
+
+	slog.Info(
+		"pool: количество объектов",
+		slog.Int("stored", p.stored),
+		slog.Int("created", p.created),
+	)
 
 	// Создаем временный слайс для клиентов
 	// Извлекаем и закрываем все клиенты из пула
