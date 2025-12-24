@@ -28,7 +28,6 @@ func (cli *Client) VerifyXML(xml, alias string, flags Flag) (result string, err 
 
 	cli.mu.Lock()
 	defer cli.mu.Unlock()
-	defer cli.XMLFinalize()
 	defer cli.forceDefragmentation() // Принудительная дефрагментация после операции
 
 	cAlias := C.CString(alias)
@@ -42,14 +41,16 @@ func (cli *Client) VerifyXML(xml, alias string, flags Flag) (result string, err 
 	outVerifyInfo := C.malloc(C.ulong(C.sizeof_char * outVerifyInfoLen))
 	defer C.free(outVerifyInfo)
 
-	rc := int(C.verifyXML(
-		cAlias,
-		C.int(flags),
-		inData,
-		C.int(inDataLength),
-		(*C.char)(outVerifyInfo),
-		(*C.int)(unsafe.Pointer(&outVerifyInfoLen)),
-	))
+	rc := int(
+		C.verifyXML(
+			cAlias,
+			C.int(flags),
+			inData,
+			C.int(inDataLength),
+			(*C.char)(outVerifyInfo),
+			(*C.int)(unsafe.Pointer(&outVerifyInfoLen)),
+		),
+	)
 
 	// Всегда копируем результат верификации ДО проверки ошибки
 	if outVerifyInfo != nil {

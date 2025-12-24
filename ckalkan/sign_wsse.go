@@ -25,7 +25,10 @@ import (
 //
 // - signNodeID - идентификатор тэга, который необходимо подписать.
 // Передать "", если необходимо подписать все содержимое документа.
-func (cli *Client) SignWSSE(xml, alias string, flags Flag, signNodeID string) (signedXML string, err error) {
+func (cli *Client) SignWSSE(xml, alias string, flags Flag, signNodeID string) (
+	signedXML string,
+	err error,
+) {
 	defer func() {
 		if r := recover(); r != nil {
 			if err != nil {
@@ -53,18 +56,19 @@ func (cli *Client) SignWSSE(xml, alias string, flags Flag, signNodeID string) (s
 
 	cli.mu.Lock()
 	defer cli.mu.Unlock()
-	defer cli.XMLFinalize()
 	defer cli.forceDefragmentation() // Принудительная дефрагментация после операции
 
-	rc := int(C.signWSSE(
-		cAlias,
-		C.int(flags),
-		cInData,
-		C.int(inDataLength),
-		(*C.uchar)(outSign),
-		(*C.int)(unsafe.Pointer(&outSignLength)),
-		cSignNodeID,
-	))
+	rc := int(
+		C.signWSSE(
+			cAlias,
+			C.int(flags),
+			cInData,
+			C.int(inDataLength),
+			(*C.uchar)(outSign),
+			(*C.int)(unsafe.Pointer(&outSignLength)),
+			cSignNodeID,
+		),
+	)
 
 	// Всегда копируем подписанный WSSE XML ДО проверки ошибки
 	if outSign != nil {
